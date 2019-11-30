@@ -17,11 +17,20 @@ const patchPostMessageJsCode = `(${String(function() {
   }
 })})();`;
 
-const generateTheWebViewContent = siteKey => {
+const generateTheWebViewContent = (siteKey, language) => {
+  var recaptchaSource = "https://recaptcha.google.cn/recaptcha/api.js";
+  if (language != null) {
+    recaptchaSource = "https://recaptcha.google.cn/recaptcha/api.js?hl='" + language + "'";
+    console.log("heeerrreee");
+    console.log(recaptchaSource);
+  } else {
+    console.log("no language specified")
+  }
+
   const originalForm =
     '<!DOCTYPE html><html><head>' +
     '<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta http-equiv="X-UA-Compatible" content="ie=edge">' +
-    '<script src="https://recaptcha.google.cn/recaptcha/api.js"></script>' +
+    '<script src=' + recaptchaSource + '></script>' +
     '<script type="text/javascript"> var onloadCallback = function() { }; ' +
     'var onDataCallback = function(response) { console.log(response); window.postMessage(response);  }; ' +
     'var onDataExpiredCallback = function(error) {  window.postMessage("expired"); }; ' +
@@ -36,7 +45,7 @@ const generateTheWebViewContent = siteKey => {
   return originalForm;
 };
 
-const RNReCaptcha = ({ onMessage, siteKey, style, url }) => (
+const RNReCaptcha = ({ onMessage, siteKey, style, url, language }) => (
   <WebView
     originWhitelist={['*']}
     mixedContentMode={'always'}
@@ -46,7 +55,7 @@ const RNReCaptcha = ({ onMessage, siteKey, style, url }) => (
     automaticallyAdjustContentInsets
     style={[{ backgroundColor: 'transparent', width: '100%' }, style]}
     source={{
-      html: generateTheWebViewContent(siteKey),
+      html: generateTheWebViewContent(siteKey, language),
       baseUrl: `${url}`,
     }}
   />
@@ -57,11 +66,13 @@ RNReCaptcha.propTypes = {
   siteKey: PropTypes.string.isRequired,
   style: PropTypes.any,
   url: PropTypes.string,
+  language: PropTypes.string
 };
 
 RNReCaptcha.defaultProps = {
   onMessage: () => {},
   url: '',
+  language: ''
 };
 
 export default RNReCaptcha;
